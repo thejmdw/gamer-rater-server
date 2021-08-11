@@ -9,12 +9,13 @@
             "release_year": 1931,
             "number_of_player": 2, 
             "game_duration": 30,
-            "age_range": 
+            "age_range": 99,
+            "categories": [10]
         }
     },
     {
         "model": "gamer_rater_server_api.game",
-        "pk": 1,
+        "pk": 2,
         "fields": {
             "title": "Clue",
             "description": "a murder mystery game",
@@ -22,7 +23,8 @@
             "release_year": 1931,
             "number_of_player": 6, 
             "game_duration": 30,
-            "age_range": 
+            "age_range": 99,
+            "categories": [1]
         }
-    },
+    }
 ]
