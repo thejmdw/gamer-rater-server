@@ -1,0 +1,56 @@
+[
+    {
+        "model": "gamer_rater_server_api.review",
+        "pk": 1,
+        "fields": {
+            "game": 1,
+            "user": 4,
+            "review": "hopefully this is a review for Battleship By Johnny Walker"
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.review",
+        "pk": 2,
+        "fields": {
+            "game": 1,
+            "user": 1,
+            "review": "This is a review for Battleship by Steve"
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.review",
+        "pk": 3,
+        "fields": {
+            "game": 1,
+            "user": 3,
+            "review": "Hopefully this is a review for Battleship by thejmdw"
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.review",
+        "pk": 4,
+        "fields": {
+            "game": 2,
+            "user": 3,
+            "review": "Hopefully this is a review for Clue by thejmdw"
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.review",
+        "pk": 5,
+        "fields": {
+            "game": 2,
+            "user": 1,
+            "review": "Hopefully this is a review for Clue by Steve"
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.review",
+        "pk": 6,
+        "fields": {
+            "game": 2,
+            "user": 4,
+            "review": "Hopefully this is a review for Battleship by Johnny"
+        }
+    }
+]

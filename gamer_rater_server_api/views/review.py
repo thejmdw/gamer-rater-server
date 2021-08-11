@@ -5,10 +5,11 @@ from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
-from gamer_rater_server_api.models import Game
+from gamer_rater_server_api.models import Review, Game
+from django.contrib.auth.models import User
 
 
-class GameView(ViewSet):
+class ReviewView(ViewSet):
     """Level up games"""
 
     def create(self, request):
@@ -24,14 +25,17 @@ class GameView(ViewSet):
         # Create a new Python instance of the Game class
         # and set its properties from what was sent in the
         # body of the request from the client.
-        game = Game()
-        game.title = request.data["title"]
-        game.description = request.data["description"]
-        game.designer = request.data["designer"]
-        game.number_of_player = request.data["numberOfPlayers"]
-        game.release_year = request.data["releaseYear"]
-        game.game_duration = request.data["gameDuration"]
-        game.age_range = request.data["ageRange"]
+        review = Review()
+        review.review = request.data["review"]
+
+        review.game = Game.objects.get(pk=request.data["gameId"])
+        review.user = request.auth.user
+        # game.description = request.data["description"]
+        # game.designer = request.data["designer"]
+        # game.number_of_player = request.data["numberOfPlayers"]
+        # game.release_year = request.data["releaseYear"]
+        # game.game_duration = request.data["gameDuration"]
+        # game.age_range = request.data["ageRange"]
         # game.categories = request.data["categories"]
 
         # Use the Django ORM to get the record from the database
@@ -44,10 +48,10 @@ class GameView(ViewSet):
         # serialize the game instance as JSON, and send the
         # JSON as a response to the client request
         try:
-            game.save()
-            game.categories.set(request.data["categories"])
+            review.save()
+            #  game.categories.set(request.data["categories"])
             #  game.categories.add(request.data["categories"])
-            serializer = GameSerializer(game, context={'request': request})
+            serializer = ReviewSerializer(review, context={'request': request})
             return Response(serializer.data)
 
         # If anything went wrong, catch the exception and
@@ -70,8 +74,8 @@ class GameView(ViewSet):
             #   http://localhost:8000/games/2
             #
             # The `2` at the end of the route becomes `pk`
-            game = Game.objects.get(pk=pk)
-            serializer = GameSerializer(game, context={'request': request})
+            review = Review.objects.get(pk=pk)
+            serializer = ReviewSerializer(review, context={'request': request})
             return Response(serializer.data)
         except Exception as ex:
             return HttpResponseServerError(ex)
@@ -87,19 +91,24 @@ class GameView(ViewSet):
         # Do mostly the same thing as POST, but instead of
         # creating a new instance of Game, get the game record
         # from the database whose primary key is `pk`
-        game = Game.objects.get(pk=pk)
-        game.title = request.data["title"]
-        game.description = request.data["description"]
-        game.designer = request.data["designer"]
-        game.number_of_player = request.data["numberOfPlayers"]
-        game.release_year = request.data["releaseYear"]
-        game.game_duration = request.data["gameDuration"]
-        game.age_range = request.data["ageRange"]
-        game.categories = request.data["categories"]
+        review = Review()
+        review.review = request.data["review"]
+
+        review.game = Game.objects.get(pk=request.data["gameId"])
+        review.user = request.auth.user
+        # game = Game.objects.get(pk=pk)
+        # game.title = request.data["title"]
+        # game.description = request.data["description"]
+        # game.designer = request.data["designer"]
+        # game.number_of_player = request.data["numberOfPlayers"]
+        # game.release_year = request.data["releaseYear"]
+        # game.game_duration = request.data["gameDuration"]
+        # game.age_range = request.data["ageRange"]
+        # game.categories = request.data["categories"]
 
         # game_type = GameType.objects.get(pk=request.data["gameTypeId"])
         # game.game_type = game_type
-        game.save()
+        review.save()
 
         # 204 status code means everything worked but the
         # server is not sending back any data in the response
@@ -112,12 +121,12 @@ class GameView(ViewSet):
             Response -- 200, 404, or 500 status code
         """
         try:
-            game = Game.objects.get(pk=pk)
-            game.delete()
+            review = Review.objects.get(pk=pk)
+            review.delete()
 
             return Response({}, status=status.HTTP_204_NO_CONTENT)
 
-        except Game.DoesNotExist as ex:
+        except Review.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as ex:
@@ -130,19 +139,25 @@ class GameView(ViewSet):
             Response -- JSON serialized list of games
         """
         # Get all game records from the database
-        games = Game.objects.all()
+        reviews = Review.objects.all()
 
         # Support filtering games by type
         #    http://localhost:8000/games?type=1
         #
         # That URL will retrieve all tabletop games
-        # game_type = self.request.query_params.get('type', None)
-        # if game_type is not None:
-        #     games = games.filter(game_type__id=game_type)
+        game = self.request.query_params.get('game', None)
+        if game is not None:
+            reviews = reviews.filter(game__id=game)
 
-        serializer = GameSerializer(
-            games, many=True, context={'request': request})
+        serializer = ReviewSerializer(
+            reviews, many=True, context={'request': request})
         return Response(serializer.data)
+
+class UserSerializer(serializers.ModelSerializer):
+    """JSON serializer for gamer's related Django user"""
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'username' )
 
 class GameSerializer(serializers.ModelSerializer):
     """JSON serializer for games
@@ -152,6 +167,19 @@ class GameSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Game
-        fields = ('id', 'title', 'description', 'number_of_player', 'designer', 'age_range', 'release_year', 'game_duration', 'categories')
+        fields = ( 'title', )
         depth = 1
- 
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """JSON serializer for games
+
+    Arguments:
+        serializer type
+    """
+    user = UserSerializer(many=False)
+    game = GameSerializer(many=False)
+
+    class Meta:
+        model = Review
+        fields = ( 'id', 'user', 'game', 'review' )
+        depth = 1
