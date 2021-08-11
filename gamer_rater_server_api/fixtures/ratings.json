@@ -1,0 +1,56 @@
+[
+    {
+        "model": "gamer_rater_server_api.rating",
+        "pk": 1,
+        "fields": {
+            "game": 1,
+            "user": 4,
+            "rating": 7
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.rating",
+        "pk": 2,
+        "fields": {
+            "game": 1,
+            "user": 1,
+            "rating": 5
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.rating",
+        "pk": 3,
+        "fields": {
+            "game": 1,
+            "user": 3,
+            "rating": 2
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.rating",
+        "pk": 4,
+        "fields": {
+            "game": 2,
+            "user": 4,
+            "rating": 10
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.rating",
+        "pk": 5,
+        "fields": {
+            "game": 2,
+            "user": 1,
+            "rating": 4
+        }
+    },
+    {
+        "model": "gamer_rater_server_api.rating",
+        "pk": 6,
+        "fields": {
+            "game": 2,
+            "user": 4,
+            "rating": 8
+        }
+    }
+]
