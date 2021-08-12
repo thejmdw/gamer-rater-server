@@ -95,12 +95,12 @@ class GameView(ViewSet):
         game.release_year = request.data["releaseYear"]
         game.game_duration = request.data["gameDuration"]
         game.age_range = request.data["ageRange"]
-        game.categories = request.data["categories"]
+        # game.categories = request.data["categories"]
 
         # game_type = GameType.objects.get(pk=request.data["gameTypeId"])
         # game.game_type = game_type
         game.save()
-
+        game.categories.set(request.data["categories"])
         # 204 status code means everything worked but the
         # server is not sending back any data in the response
         return Response({}, status=status.HTTP_204_NO_CONTENT)
