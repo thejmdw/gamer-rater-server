@@ -36,7 +36,7 @@ class RatingView(ViewSet):
         # game.release_year = request.data["releaseYear"]
         # game.game_duration = request.data["gameDuration"]
         # game.age_range = request.data["ageRange"]
-        # game.categories = request.data["categories"]
+        # game.categories = request.data["categories"]                
 
         # Use the Django ORM to get the record from the database
         # whose `id` is what the client passed as the
@@ -182,4 +182,4 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ( 'id', 'user', 'game', 'rating' )
-        depth = 1
+        depth = 1     

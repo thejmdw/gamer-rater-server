@@ -10,7 +10,8 @@
             "number_of_player": 2, 
             "game_duration": 30,
             "age_range": 99,
-            "categories": [10]
+            "categories": [10],
+            "user_id": 1
         }
     },
     {
@@ -24,7 +25,8 @@
             "number_of_player": 6, 
             "game_duration": 30,
             "age_range": 99,
-            "categories": [1]
+            "categories": [1],
+            "user_id": 1
         }
     }
 ]
