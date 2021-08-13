@@ -5,11 +5,14 @@ from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
-from gamer_rater_server_api.models import Game
+from gamer_rater_server_api.models import Review, Game, Image
 from django.contrib.auth.models import User
+import uuid
+import base64
+from django.core.files.base import ContentFile
 
 
-class GameView(ViewSet):
+class ImageView(ViewSet):
     """Level up games"""
 
     def create(self, request):
@@ -25,17 +28,21 @@ class GameView(ViewSet):
         # Create a new Python instance of the Game class
         # and set its properties from what was sent in the
         # body of the request from the client.
-        game = Game()
-        game.title = request.data["title"]
-        game.description = request.data["description"]
-        game.designer = request.data["designer"]
-        game.number_of_player = request.data["numberOfPlayers"]
-        game.release_year = request.data["releaseYear"]
-        game.game_duration = request.data["gameDuration"]
-        game.age_range = request.data["ageRange"]
+        image = Image()
 
-        game.user = request.auth.user
-        # game.user = request.data["user"]
+        image.game = Game.objects.get(pk=request.data["gameId"])
+        image.user = request.auth.user
+
+        format, imgstr = request.data["image"].split(';base64,')
+        ext = format.split('/')[-1]
+        data = ContentFile(base64.b64decode(imgstr), name=f'{request.data["gameId"]}-{uuid.uuid4()}.{ext}')
+        image.image = data
+        # game.description = request.data["description"]
+        # game.designer = request.data["designer"]
+        # game.number_of_player = request.data["numberOfPlayers"]
+        # game.release_year = request.data["releaseYear"]
+        # game.game_duration = request.data["gameDuration"]
+        # game.age_range = request.data["ageRange"]
         # game.categories = request.data["categories"]
 
         # Use the Django ORM to get the record from the database
@@ -48,10 +55,10 @@ class GameView(ViewSet):
         # serialize the game instance as JSON, and send the
         # JSON as a response to the client request
         try:
-            game.save()
-            game.categories.set(request.data["categories"])
+            image.save()
+            #  game.categories.set(request.data["categories"])
             #  game.categories.add(request.data["categories"])
-            serializer = GameSerializer(game, context={'request': request})
+            serializer = ImageSerializer(image, context={'request': request})
             return Response(serializer.data)
 
         # If anything went wrong, catch the exception and
@@ -74,8 +81,8 @@ class GameView(ViewSet):
             #   http://localhost:8000/games/2
             #
             # The `2` at the end of the route becomes `pk`
-            game = Game.objects.get(pk=pk)
-            serializer = GameSerializer(game, context={'request': request})
+            image = Image.objects.get(pk=pk)
+            serializer = ImageSerializer(image, context={'request': request})
             return Response(serializer.data)
         except Exception as ex:
             return HttpResponseServerError(ex)
@@ -91,21 +98,25 @@ class GameView(ViewSet):
         # Do mostly the same thing as POST, but instead of
         # creating a new instance of Game, get the game record
         # from the database whose primary key is `pk`
-        game = Game.objects.get(pk=pk)
-        game.title = request.data["title"]
-        game.description = request.data["description"]
-        game.designer = request.data["designer"]
-        game.number_of_player = request.data["numberOfPlayers"]
-        game.release_year = request.data["releaseYear"]
-        game.game_duration = request.data["gameDuration"]
-        game.age_range = request.data["ageRange"]
-        # game.user = request.data["user"]
+        image = Image.objects.get(pk=pk)
+        
+        image.game = Game.objects.get(pk=request.data["gameId"])
+        image.user = request.auth.user
+        image.image = request.data["image"]
+        # game = Game.objects.get(pk=pk)
+        # game.title = request.data["title"]
+        # game.description = request.data["description"]
+        # game.designer = request.data["designer"]
+        # game.number_of_player = request.data["numberOfPlayers"]
+        # game.release_year = request.data["releaseYear"]
+        # game.game_duration = request.data["gameDuration"]
+        # game.age_range = request.data["ageRange"]
         # game.categories = request.data["categories"]
 
         # game_type = GameType.objects.get(pk=request.data["gameTypeId"])
         # game.game_type = game_type
-        game.save()
-        game.categories.set(request.data["categories"])
+        image.save()
+
         # 204 status code means everything worked but the
         # server is not sending back any data in the response
         return Response({}, status=status.HTTP_204_NO_CONTENT)
@@ -117,12 +128,12 @@ class GameView(ViewSet):
             Response -- 200, 404, or 500 status code
         """
         try:
-            game = Game.objects.get(pk=pk)
-            game.delete()
+            image = Image.objects.get(pk=pk)
+            image.delete()
 
             return Response({}, status=status.HTTP_204_NO_CONTENT)
 
-        except Game.DoesNotExist as ex:
+        except Image.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as ex:
@@ -135,25 +146,25 @@ class GameView(ViewSet):
             Response -- JSON serialized list of games
         """
         # Get all game records from the database
-        games = Game.objects.all()
+        images = Image.objects.all()
 
         # Support filtering games by type
         #    http://localhost:8000/games?type=1
         #
         # That URL will retrieve all tabletop games
-        # game_type = self.request.query_params.get('type', None)
-        # if game_type is not None:
-        #     games = games.filter(game_type__id=game_type)
+        game = self.request.query_params.get('game', None)
+        if game is not None:
+            images = images.filter(game__id=game)
 
-        serializer = GameSerializer(
-            games, many=True, context={'request': request})
+        serializer = ImageSerializer(
+            images, many=True, context={'request': request})
         return Response(serializer.data)
 
 class UserSerializer(serializers.ModelSerializer):
     """JSON serializer for gamer's related Django user"""
     class Meta:
         model = User
-        fields = ('id', )
+        fields = ('id', 'first_name', 'last_name', 'username' )
 
 class GameSerializer(serializers.ModelSerializer):
     """JSON serializer for games
@@ -161,9 +172,21 @@ class GameSerializer(serializers.ModelSerializer):
     Arguments:
         serializer type
     """
-    user = UserSerializer(many=False)
     class Meta:
         model = Game
-        fields = ('id', 'title', 'description', 'number_of_player', 'designer', 'age_range', 'release_year', 'game_duration', 'categories', 'average_rating', 'user')
+        fields = ( 'id', 'title', )
         depth = 1
- 
+
+class ImageSerializer(serializers.ModelSerializer):
+    """JSON serializer for games
+
+    Arguments:
+        serializer type
+    """
+    user = UserSerializer(many=False)
+    game = GameSerializer(many=False)
+
+    class Meta:
+        model = Image
+        fields = ( 'id', 'user', 'game', 'image' )
+        depth = 1

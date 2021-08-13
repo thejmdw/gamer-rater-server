@@ -16,9 +16,9 @@ class Game(models.Model):
     def __str__(self):
         return self.title
 
-    @property
-    def user(self):
-        return self.id
+    # @property
+    # def user(self):
+    #     return self.id
 
     @property
     def average_rating(self):
@@ -29,8 +29,12 @@ class Game(models.Model):
         total_rating = 0
         for rating in ratings:
             total_rating += rating.rating
+            ratings_len = len(ratings)
+            if ratings == 0:
+                return 0
+            else:
+                return total_rating / ratings_len
         
-        return total_rating / len(ratings)
 
         # Calculate the averge and return it.
         # If you don't know how to calculate averge, Google it.
