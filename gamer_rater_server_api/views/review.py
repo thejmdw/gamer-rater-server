@@ -52,7 +52,7 @@ class ReviewView(ViewSet):
             #  game.categories.set(request.data["categories"])
             #  game.categories.add(request.data["categories"])
             serializer = ReviewSerializer(review, context={'request': request})
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         # If anything went wrong, catch the exception and
         # send a response with a 400 status code to tell the

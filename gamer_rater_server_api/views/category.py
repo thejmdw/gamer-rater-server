@@ -9,18 +9,18 @@ from gamer_rater_server_api.models import Category
 class CategoryView(ViewSet):
     """Level up game types"""
 
-    def retrieve(self, request, pk=None):
-        """Handle GET requests for single game type
+    # def retrieve(self, request, pk=None):
+    #     """Handle GET requests for single game type
 
-        Returns:
-            Response -- JSON serialized game type
-        """
-        try:
-            category = Category.objects.get(pk=pk)
-            serializer = CategorySerializer(category, context={'request': request})
-            return Response(serializer.data)
-        except Exception as ex:
-            return HttpResponseServerError(ex)
+    #     Returns:
+    #         Response -- JSON serialized game type
+    #     """
+    #     try:
+    #         category = Category.objects.get(pk=pk)
+    #         serializer = CategorySerializer(category, context={'request': request})
+    #         return Response(serializer.data)
+    #     except Exception as ex:
+    #         return HttpResponseServerError(ex)
 
     def list(self, request):
         """Handle GET requests to get all game types

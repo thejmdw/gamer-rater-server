@@ -17,8 +17,9 @@ from django.contrib import admin
 from django.conf.urls import include
 from django.urls import path
 from rest_framework import routers
-from gamer_rater_server_api.views import register_user, login_user, GameView, CategoryView, ReviewView, RatingView, ProfileView
-
+from gamer_rater_server_api.views import register_user, login_user, GameView, CategoryView, ReviewView, RatingView, ProfileView, ImageView
+from django.conf.urls.static import static
+from django.conf import settings
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'games', GameView, 'game')
@@ -26,6 +27,7 @@ router.register(r'categories', CategoryView, 'category')
 router.register(r'reviews', ReviewView, 'review')
 router.register(r'ratings', RatingView, 'rating')
 router.register(r'profile', ProfileView, 'profile')
+router.register(r'images', ImageView, 'image')
 
 
 urlpatterns = [
@@ -34,4 +36,4 @@ urlpatterns = [
     path('login', login_user),
     path('api-auth', include('rest_framework.urls', namespace='rest_framework')),
     path('admin/', admin.site.urls),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
