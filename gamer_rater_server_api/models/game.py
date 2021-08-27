@@ -10,7 +10,7 @@ class Game(models.Model):
     number_of_player = models.IntegerField()
     game_duration = models.IntegerField()
     age_range = models.IntegerField()
-    categories = models.ManyToManyField("Category", through="GameCategory", related_name="Category")
+    categories = models.ManyToManyField("Category", through="GameCategory", related_name="categories")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -19,6 +19,14 @@ class Game(models.Model):
     # @property
     # def user(self):
     #     return self.id
+    
+    # @property
+    # def is_current_user(self):
+    #     return self.is_current_user
+
+    # @is_current_user.setter
+    # def is_current_user(self, value):
+    #     self.__is_current_user = value
 
     @property
     def average_rating(self):

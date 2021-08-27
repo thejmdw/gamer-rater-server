@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from gamer_rater_server_api.models import Game
 from django.contrib.auth.models import User
+from django.db.models import Q
+
 
 
 class GameView(ViewSet):
@@ -20,12 +22,13 @@ class GameView(ViewSet):
         """
 
         # Uses the token passed in the `Authorization` header
-        # gamer = Gamer.objects.get(user=request.auth.user)
+        user = User.objects.get(username=request.auth.user)
 
         # Create a new Python instance of the Game class
         # and set its properties from what was sent in the
         # body of the request from the client.
         game = Game()
+        game.user = user
         game.title = request.data["title"]
         game.description = request.data["description"]
         game.designer = request.data["designer"]
@@ -34,8 +37,9 @@ class GameView(ViewSet):
         game.game_duration = request.data["gameDuration"]
         game.age_range = request.data["ageRange"]
 
-        game.user = request.auth.user
-        # game.user = request.data["user"]
+        # game.user = request.auth.user
+
+        # user = request.data["user_id"]
         # game.categories = request.data["categories"]
 
         # Use the Django ORM to get the record from the database
@@ -52,7 +56,7 @@ class GameView(ViewSet):
             game.categories.set(request.data["categories"])
             #  game.categories.add(request.data["categories"])
             serializer = GameSerializer(game, context={'request': request})
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         # If anything went wrong, catch the exception and
         # send a response with a 400 status code to tell the
@@ -68,6 +72,8 @@ class GameView(ViewSet):
         Returns:
             Response -- JSON serialized game instance
         """
+        # user = User.objects.get(id=request.auth.user_id)
+        
         try:
             # `pk` is a parameter to this function, and
             # Django parses it from the URL route parameter
@@ -75,8 +81,15 @@ class GameView(ViewSet):
             #
             # The `2` at the end of the route becomes `pk`
             game = Game.objects.get(pk=pk)
+            # if game.user == user:
+            #     game.is_current_user = True
+            # else:
+            #     game.is_current_user = False
             serializer = GameSerializer(game, context={'request': request})
             return Response(serializer.data)
+        except Game.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+                
         except Exception as ex:
             return HttpResponseServerError(ex)
 
@@ -101,11 +114,11 @@ class GameView(ViewSet):
         game.age_range = request.data["ageRange"]
         # game.user = request.data["user"]
         # game.categories = request.data["categories"]
-
+        # game.categories.set([category["id"] for category in request.data["categories"]])
+        game.categories.set(request.data["categories"])
         # game_type = GameType.objects.get(pk=request.data["gameTypeId"])
         # game.game_type = game_type
         game.save()
-        game.categories.set(request.data["categories"])
         # 204 status code means everything worked but the
         # server is not sending back any data in the response
         return Response({}, status=status.HTTP_204_NO_CONTENT)
@@ -128,6 +141,7 @@ class GameView(ViewSet):
         except Exception as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
     def list(self, request):
         """Handle GET requests to games resource
 
@@ -137,23 +151,29 @@ class GameView(ViewSet):
         # Get all game records from the database
         games = Game.objects.all()
 
-        # Support filtering games by type
-        #    http://localhost:8000/games?type=1
+        # Support searching games by paraM
+        #    http://localhost:8000/games?q=param
         #
         # That URL will retrieve all tabletop games
-        # game_type = self.request.query_params.get('type', None)
-        # if game_type is not None:
-        #     games = games.filter(game_type__id=game_type)
+        
+        search_text = self.request.query_params.get('q', None)
+        if search_text is not None:
+            games = Game.objects.filter(
+                    Q(title__contains=search_text) 
+                    # |
+                    # Q(description__contains=search_text) |
+                    # Q(designer__contains=search_text))
+            )
 
         serializer = GameSerializer(
             games, many=True, context={'request': request})
         return Response(serializer.data)
 
-class UserSerializer(serializers.ModelSerializer):
-    """JSON serializer for gamer's related Django user"""
-    class Meta:
-        model = User
-        fields = ('id', )
+# class UserSerializer(serializers.ModelSerializer):
+#     """JSON serializer for gamer's related Django user"""
+#     class Meta:
+#         model = User
+#         fields = ('id', )
 
 class GameSerializer(serializers.ModelSerializer):
     """JSON serializer for games
@@ -161,9 +181,10 @@ class GameSerializer(serializers.ModelSerializer):
     Arguments:
         serializer type
     """
-    user = UserSerializer(many=False)
+    # user = UserSerializer(many=False)
     class Meta:
         model = Game
-        fields = ('id', 'title', 'description', 'number_of_player', 'designer', 'age_range', 'release_year', 'game_duration', 'categories', 'average_rating', 'user')
+        fields = ('id', 'title', 'description', 'number_of_player', 'designer', 'age_range', 'release_year', 'game_duration', 'categories', 'average_rating')
+        # , 'user'
         depth = 1
  

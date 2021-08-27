@@ -21,7 +21,7 @@ class RatingView(ViewSet):
 
         # Uses the token passed in the `Authorization` header
         # gamer = Gamer.objects.get(user=request.auth.user)
-
+        user = User.objects.get(username=request.auth.user)
         # Create a new Python instance of the Game class
         # and set its properties from what was sent in the
         # body of the request from the client.
@@ -29,7 +29,7 @@ class RatingView(ViewSet):
         rating.rating = request.data["rating"]
 
         rating.game = Game.objects.get(pk=request.data["gameId"])
-        rating.user = request.auth.user
+        rating.user = user
         # game.description = request.data["description"]
         # game.designer = request.data["designer"]
         # game.number_of_player = request.data["numberOfPlayers"]
@@ -52,7 +52,7 @@ class RatingView(ViewSet):
             #  game.categories.set(request.data["categories"])
             #  game.categories.add(request.data["categories"])
             serializer = RatingSerializer(rating, context={'request': request})
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         # If anything went wrong, catch the exception and
         # send a response with a 400 status code to tell the
@@ -91,7 +91,7 @@ class RatingView(ViewSet):
         # Do mostly the same thing as POST, but instead of
         # creating a new instance of Game, get the game record
         # from the database whose primary key is `pk`
-        rating = Rating()
+        rating = Rating.objects.get(pk=pk)
         rating.rating = request.data["rating"]
 
         rating.game = Game.objects.get(pk=request.data["gameId"])
